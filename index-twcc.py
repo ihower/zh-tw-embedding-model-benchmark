@@ -9,7 +9,7 @@ model_name = "ffm-embedding"
 
 dataset = load_dataset("MediaTek-Research/TCEval-v2", "drcd")
 
-supabase_url = 'https://xxxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
@@ -20,7 +20,7 @@ supabase.table('paragraphs').delete().eq('model', model_name).execute()
 
 # -----
 
-twcc_api_key = 'xxxx'
+twcc_api_key = os.environ["TWCC_API_KEY"]
 twcc_api_url = 'https://api-ams.twcc.ai/api'
 
 def get_twcc_embeddings(input):

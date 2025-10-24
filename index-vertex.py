@@ -6,28 +6,28 @@ import time
 import os
 
 
-# 本來還想測試多模態的 multimodalembedding@001 (1408d)
-# 不過碰到錯誤: "Multimodal embedding failed with the following error: Text field must be smaller than 1024 characters."
+# model_name = "multimodalembedding@001"
+# 錯誤 "Multimodal embedding failed with the following error: Text field must be smaller than 1024 characters."
 
 model_name = "text-multilingual-embedding-002"
 
 dataset = load_dataset("MediaTek-Research/TCEval-v2", "drcd")
 
-supabase_url = 'https://xxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
 
-supabase.table('questions').delete().eq('model', model_name).execute()
-supabase.table('paragraphs').delete().eq('model', model_name).execute()
+#supabase.table('questions').delete().eq('model', model_name).execute()
+#supabase.table('paragraphs').delete().eq('model', model_name).execute()
 
 
 # -----
 
-gcp_project_id = 'xxx'
+gcp_project_id = os.environ['GCP_PROJECT_ID']
 
 # gcloud auth print-access-token
-gcp_access_token = 'yyy'
+gcp_access_token = os.environ['GCP_ACCESS_TOKEN']
 
 def get_vertex_text_embeddings(input):
   payload = {
@@ -45,7 +45,7 @@ def get_vertex_text_embeddings(input):
 
   if response.status_code == 200 :
     return obj["predictions"][0]["embeddings"]["values"] # text-multilingual-embedding-002 用這個
-    # return obj["predictions"][0]["textEmbedding"] # multimodalembedding@001 用這個
+    # return obj["predictions"][0]["textEmbedding"] # multimodalembedding@001 用這個, 1408d
   else :
     return obj
 

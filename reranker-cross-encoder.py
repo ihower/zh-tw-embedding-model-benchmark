@@ -1,7 +1,9 @@
 from supabase import create_client, Client
+from datetime import datetime
 
 model_name = "text-embedding-3-small"
 
+print(datetime.now())
 print( model_name )
 
 supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
@@ -70,31 +72,37 @@ def calculate_average(arr):
 hit_data = []
 mmr_data = []
 
-## cohere
-import cohere
-co = cohere.Client(api_key="DwUml7Wsb8QnJnMoR66UXzM4ulEL6nH3GfLy4iMS")
+from sentence_transformers import CrossEncoder
 
-import time
+
+reranker_model = 'cross-encoder/ms-marco-MiniLM-L-6-v2'
+reranker = CrossEncoder(reranker_model, max_length=512)
+
+print(reranker_model)
+
+search_top_k = 50
+
+print(search_top_k)
+
+print(datetime.now())
 
 for idx, question_embedding in enumerate(question_embeddings):
 
   print(idx)
 
-  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, 100) # 取出 top_k 的 indexes
+  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, search_top_k) # 取出 top_k 的 indexes
   # ----- reranker 後取 top 5
 
-  # cohere
   rerank_docs = [paragraph_contents[i] for i in best_indexes]
 
-  try:
-    results = co.rerank(model="rerank-v3.5", query= question_contents[idx], documents=rerank_docs, top_n=5, return_documents=False)
-  except Exception as e:
-    print("api error.....")
-    time.sleep(3)
-    # retry
-    results = co.rerank(model="rerank-v3.5", query= question_contents[idx], documents=rerank_docs, top_n=5, return_documents=False)
+  pairs = [[question_contents[idx], doc] for doc in rerank_docs]
 
-  rerank_indexes = [x.index for x in results.results]
+
+  scores = reranker.predict(pairs)
+
+
+  ordered_index = np.argsort(scores)[::-1]
+  rerank_indexes = ordered_index[0:5] # 取前5
 
   best_best_indexes = [best_indexes[i] for i in rerank_indexes]
 
@@ -121,3 +129,5 @@ average_mrr = calculate_average(mmr_data)
 
 print("MRR score:")
 print(average_mrr)
+
+print(datetime.now())

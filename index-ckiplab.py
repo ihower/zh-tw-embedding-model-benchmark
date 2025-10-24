@@ -36,8 +36,8 @@ print(model_name)
 
 dataset = load_dataset("MediaTek-Research/TCEval-v2", "drcd")
 
-supabase_url = 'https://xxx.supabase.co'
-supabase_api_key = '...'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
+supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
 

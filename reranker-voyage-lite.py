@@ -1,12 +1,11 @@
 from supabase import create_client, Client
-from datetime import datetime
+import os
 
 model_name = "text-embedding-3-small"
 
-print(datetime.now())
 print( model_name )
 
-supabase_url = 'https://xxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
@@ -72,37 +71,41 @@ def calculate_average(arr):
 hit_data = []
 mmr_data = []
 
-from sentence_transformers import CrossEncoder
+## voyage
+voyage_api_key = os.environ['VOYAGE_API_KEY']
 
+import voyageai
+vo = voyageai.Client()
 
-reranker_model = 'cross-encoder/ms-marco-MiniLM-L-6-v2'
-reranker = CrossEncoder(reranker_model, max_length=512)
+import time
 
-print(reranker_model)
+print("voyageai rerank-lite-1")
 
-search_top_k = 50
-
-print(search_top_k)
-
-print(datetime.now())
 
 for idx, question_embedding in enumerate(question_embeddings):
 
   print(idx)
 
-  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, search_top_k) # 取出 top_k 的 indexes
+  if idx % 95 == 0:
+    print("wait 20s.....")
+    time.sleep(20) # 有 rate limit of 100 requests per minute
+
+  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, 100) # 取出 top_k 的 indexes
   # ----- reranker 後取 top 5
 
+  # voyageai
   rerank_docs = [paragraph_contents[i] for i in best_indexes]
 
-  pairs = [[question_contents[idx], doc] for doc in rerank_docs]
+  try:
+    results = vo.rerank(question_contents[idx], rerank_docs, model="rerank-lite-1", top_k=5)
 
+  except Exception as e:
+    print("api error.....")
+    time.sleep(61)
+    # retry
+    results = vo.rerank(question_contents[idx], rerank_docs, model="rerank-lite-1", top_k=5)
 
-  scores = reranker.predict(pairs)
-
-
-  ordered_index = np.argsort(scores)[::-1]
-  rerank_indexes = ordered_index[0:5] # 取前5
+  rerank_indexes = [x.index for x in results.results]
 
   best_best_indexes = [best_indexes[i] for i in rerank_indexes]
 
@@ -129,5 +132,3 @@ average_mrr = calculate_average(mmr_data)
 
 print("MRR score:")
 print(average_mrr)
-
-print(datetime.now())

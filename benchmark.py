@@ -1,25 +1,31 @@
-from supabase import create_client, Client
+import sqlite3
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
-model_name = "<要評測的model名稱>"
+model_name = 'google/embeddinggemma-300m' # "ckiplab/bert-base-chinese"
 
 print( model_name )
 
-supabase_url = 'https://xxx.supabase.co'
-supabase_api_key = '...'
+# 建立 SQLite 連接
+conn = sqlite3.connect('data.db')
+cursor = conn.cursor()
 
-supabase: Client = create_client(supabase_url, supabase_api_key)
+# 取得 questions 資料
+cursor.execute("SELECT embedding, paragraph_id FROM questions WHERE model = ?", (model_name,))
+questions_data = cursor.fetchall()
 
-response1 = supabase.table('questions').select("embedding, paragraph_id").eq("model", model_name).execute()
+question_embeddings = [eval(row[0]) for row in questions_data]
+gold_paragraph_ids = [row[1] for row in questions_data]
 
-question_embeddings = [ eval(x["embedding"]) for x in response1.data]
+# 取得 paragraphs 資料
+cursor.execute("SELECT id, embedding FROM paragraphs WHERE model = ?", (model_name,))
+paragraphs_data = cursor.fetchall()
 
-gold_paragraph_ids = [x["paragraph_id"] for x in response1.data]
+paragraph_ids = [row[0] for row in paragraphs_data]
+paragraph_embeddings = [eval(row[1]) for row in paragraphs_data]
 
-response2 = supabase.table('paragraphs').select("id, embedding").eq("model", model_name).execute()
-
-paragraph_ids = [x["id"] for x in response2.data]
-
-paragraph_embeddings = [ eval(x["embedding"]) for x in response2.data]
+# 關閉資料庫連接
+conn.close()
 
 print( len(question_embeddings) ) # 應該要是 3493
 print( len(paragraph_embeddings) ) # 應該要是 1000
@@ -28,9 +34,6 @@ print("Dimension:")
 print( len(question_embeddings[0]) ) # 這是向量維度
 
 print("----------------")
-
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 
 # 參數 list_of_doc_vectors 是所有文件的 embeddings 向量
 # 參數 query_vector 是查詢字串的 embedding 向量
@@ -69,7 +72,7 @@ mmr_data = []
 
 for idx, question_embedding in enumerate(question_embeddings):
 
-  print(idx, end=", ")
+  print(idx)
 
   best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, 5) # 取出 top_k 的 indexes
   context_ids = [paragraph_ids[i] for i in best_indexes] # 找出對應的 paragraph_ids

@@ -1,12 +1,12 @@
 from supabase import create_client, Client
 from datetime import datetime
 
-model_name = "text-embedding-3-small"
+model_name = "BAAI/bge-m3"
 
 print(datetime.now())
 print( model_name )
 
-supabase_url = 'https://xxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
@@ -105,7 +105,6 @@ for idx, question_embedding in enumerate(question_embeddings):
   print(idx)
 
   best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, search_top_k) # 取出 top_k 的 indexes
-
   # ----- reranker 後取 top 5
 
   rerank_docs = [paragraph_contents[i] for i in best_indexes]

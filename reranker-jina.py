@@ -1,10 +1,10 @@
 from supabase import create_client, Client
 
-model_name = "text-embedding-3-small"
+model_name = "voyage-multilingual-2"
 
 print( model_name )
 
-supabase_url = 'https://xxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
@@ -74,7 +74,8 @@ import requests
 import json
 import time
 
-jina_api_key = 'xxxx'
+jina_api_key = os.environ["JINA_API_KEY"]
+# left 1,000,965,899 tokens
 
 def jina_rerank(query, docs, top_n, model = "jina-reranker-v2-base-multilingual"):
   payload = { "model": model, "query": query, "documents": docs, "top_n": top_n, "return_documents": False }
@@ -86,7 +87,7 @@ def jina_rerank(query, docs, top_n, model = "jina-reranker-v2-base-multilingual"
   if response.status_code == 200:
     return obj["results"]
   else:
-    print("api error.... retry")
+    print("api error 1.... retry")
     time.sleep(65)
     jina_rerank(query, docs, top_n, model)
 
@@ -104,7 +105,7 @@ for idx, question_embedding in enumerate(question_embeddings):
   try:
     results = jina_rerank(question_contents[idx], rerank_docs, 5)
   except Exception as e:
-    print("api error..... retry")
+    print("api error 2..... retry")
     time.sleep(65)
     # retry
     results = jina_rerank(question_contents[idx], rerank_docs, 5)

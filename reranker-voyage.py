@@ -1,10 +1,11 @@
 from supabase import create_client, Client
+import os
 
 model_name = "text-embedding-3-small"
 
 print( model_name )
 
-supabase_url = 'https://xxx.supabase.co'
+supabase_url = 'https://imcpayinnpcetclzvdfu.supabase.co'
 supabase_api_key = ''
 
 supabase: Client = create_client(supabase_url, supabase_api_key)
@@ -71,9 +72,7 @@ hit_data = []
 mmr_data = []
 
 ## voyage
-voyage_api_key = 'xxx'
-import os
-os.environ['VOYAGE_API_KEY'] = voyage_api_key
+voyage_api_key = os.environ['VOYAGE_API_KEY']
 
 import voyageai
 vo = voyageai.Client()
@@ -81,6 +80,7 @@ vo = voyageai.Client()
 import time
 
 print("voyageai rerank-1")
+
 
 
 for idx, question_embedding in enumerate(question_embeddings):
@@ -91,7 +91,7 @@ for idx, question_embedding in enumerate(question_embeddings):
     print("wait 20s.....")
     time.sleep(20) # 有 rate limit of 100 requests per minute
 
-  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, 50) # 取出 top_k 的 indexes
+  best_indexes = get_top_k_indices(paragraph_embeddings, question_embedding, 100) # 取出 top_k 的 indexes
   # ----- reranker 後取 top 5
 
   # voyageai
