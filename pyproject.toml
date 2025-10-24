@@ -9,4 +9,5 @@ dependencies = [
     "numpy>=2.3.4",
     "openai>=2.6.1",
     "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.1.2",
 ]
